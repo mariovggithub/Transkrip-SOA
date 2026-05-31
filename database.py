@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base
+from models import *
 
 DATABASE_URL = "postgresql://postgres:password@master-db:5432/master_db"
 
