@@ -1,1 +1,3 @@
 nameko
+sqlalchemy
+psycopg2-binary
