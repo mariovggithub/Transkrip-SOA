@@ -6,4 +6,4 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-CMD ["nameko", "run", "service"]
+CMD ["nameko", "run", "--config", "config.yml", "service"]
