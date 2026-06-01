@@ -9,20 +9,23 @@ class MasterService:
     @rpc
     def create_unit(self, name, type, parent_id=None):
         db = SessionLocal()
-        unit = UnitAkademik(
-            name = name,
-            type = type,
-            parent_id = parent_id
-        )
-        db.add(unit)
-        db.commit()
-        db.refresh(unit)
+        try:
+            unit = UnitAkademik(
+                unit_name = name,
+                unit_type = type,
+                parent_id = parent_id
+            )
+            db.add(unit)
+            db.commit()
+            db.refresh(unit)
 
-        return {
-            "id": unit.unit_id,
-            "name": unit.unit_name,
-            "type": unit.unit_type
-        }
+            return {
+                "id": unit.unit_id,
+                "name": unit.unit_name,
+                "type": unit.unit_type
+            }
+        finally:
+            db.close()
     
     @rpc
     def get_units(self):
