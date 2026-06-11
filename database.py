@@ -9,7 +9,8 @@ from Transkrip.models import Base
 # Ambil DATABASE_URL dari environment variable agar fleksibel di Docker
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql://postgres:password@transkrip-db:5432/transkrip_db"
+    "mysql+pymysql://root@transkrip-db:3306/transkrip_db"
+    #"postgresql://postgres:password@transkrip-db:5432/transkrip_db"
 )
 
 engine       = create_engine(DATABASE_URL)
