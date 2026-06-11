@@ -1,3 +1,5 @@
 nameko
+nameko.rpc
+nameko-sqlalchemy
 sqlalchemy
 psycopg2-binary

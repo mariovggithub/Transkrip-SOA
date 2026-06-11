@@ -1,32 +1,76 @@
-# version: "2"
+version: '3.8'
 
+name: transkrip-microservice
 services:
+
+  # ─────────────────────────────────────────────
+  # RabbitMQ: Message broker Nameko
+  # Port 15672 = dashboard web (buka di browser untuk debug)
+  # Port 5672  = port AMQP yang dipakai service
+  # ─────────────────────────────────────────────
   rabbitmq:
     image: rabbitmq:3-management
     ports:
+      - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  master-db:
+  # ─────────────────────────────────────────────
+  # PostgreSQL: Database khusus service Transkrip
+  # FIX: Nama diubah ke transkrip-db (bukan master-db)
+  # ─────────────────────────────────────────────
+  transkrip-db:
     image: postgres:15
     environment:
-      POSTGRES_DB: master_db
-      POSTGRES_USER: postgres
+      POSTGRES_DB:       transkrip_db
+      POSTGRES_USER:     postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5433:5432"   # 5433 di host agar tidak bentrok dengan service lain
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - transkrip_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  master-service:
+  # ─────────────────────────────────────────────
+  # db-init: Jalankan database.py sekali untuk buat tabel
+  # Pakai `restart: on-failure` agar retry jika DB belum siap
+  # ─────────────────────────────────────────────
+  db-init:
     build: .
-    image: master-service:1.0
+    command: python database.py
     depends_on:
-      - rabbitmq
-      - master-db
+      transkrip-db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@transkrip-db:5432/transkrip_db
+    restart: on-failure
+
+  # ─────────────────────────────────────────────
+  # Transkrip Service: Nameko service utama
+  # FIX: CMD mengacu ke Transkrip.service (bukan service saja)
+  # ─────────────────────────────────────────────
+  transkrip-service:
+    build: .
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      transkrip-db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     volumes:
       - .:/app
     environment:
       - NAMEKO_CONFIG=/app/config.yml
+      - DATABASE_URL=postgresql://postgres:password@transkrip-db:5432/transkrip_db
 
 volumes:
-  pgdata:
+  transkrip_pgdata:

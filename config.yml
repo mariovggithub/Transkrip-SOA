@@ -1,3 +1,7 @@
+# master punya
 AMQP_URI: pyamqp://guest:guest@rabbitmq
+ 
 DB_URIS:
-  transkrip_service: mysql+pymysql://user:pass@localhost/transkrip_db
+  #transkrip_service: postgresql://postgres:password@transkrip-db:5432/transkrip_db
+  # pakai mysql tanpa password
+  transkrip_service: mysql+pymysql://root@transkrip-db:3306/transkrip_db
